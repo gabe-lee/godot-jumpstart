@@ -1,17 +1,55 @@
-# Godot 4+ specific ignores
+# Godot-specific tracking overrides
+# ---------------------------------
 .godot/
-.nomedia
-
-# Godot-specific ignores
 .import/
-export.cfg
-export_credentials.cfg
-*.tmp
 
-# Imported translations (automatically generated from CSV files)
+/android/
+
+# Imported translations
 *.translation
 
-# Mono-specific ignores
+# Mono/C# build artifacts
+# -----------------------
 .mono/
 data_*/
-mono_crash.*.json
+mono_crash_*.json
+
+# Build outputs and presets
+# -------------------------
+export_presets.cfg
+
+# Un-comment the line below if you keep build outputs inside your project folder
+build/local/
+build_send_to_phone.sh
+
+# Crash dumps and logs
+# --------------------
+*.log
+
+# Shared IDE & System configurations
+# ----------------------------------
+.visualstudio/
+.vs/
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.csproj
+
+# OS-generated files
+# ------------------
+.DS_Store
+Thumbs.db
+
+/scrap
+.scrap
+
+BinFormats/
+encrypted_templates/
+craftpix.net
+
+# Zig if for some reason you use it with godot
+.zig-cache
+/zig-cache

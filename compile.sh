@@ -27,6 +27,10 @@ set -euo pipefail
 
 source ./build/local/env.sh
 
+export ANDROID_HOME="$ANDROID_SDK_DIR"
+export ANDROID_NDK_ROOT="$ANDROID_NDK_DIR"
+export JAVA_HOME="$JAVA_DIR"
+
 [ ! -d "$GODOT_SOURCE_PATH" ] && { echo "Godot source directory not found, check ./build/local/env.sh"; exit 1; }
 : "${SCRIPT_AES256_ENCRYPTION_KEY:?Set SCRIPT_AES256_ENCRYPTION_KEY in ./build/local/env.sh first}"
 
@@ -36,7 +40,7 @@ JOBS="${JOBS:-$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
 PROJECT_DIR=$PWD
 PROFILE_PATH="$PROJECT_DIR/build/profile.gdbuild"
 OUT_DIR="$PROJECT_DIR/build/local/templates/"
-
+echo "OUTDIR: $OUT_DIR"
 pushd $GODOT_SOURCE_PATH
 
 if [[ ! -f SConstruct ]]; then
@@ -79,11 +83,11 @@ build_editor() {
     return
   fi
   log "Building Editor (release$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  local editor_dir=$(dirname "$path")
+  local editor_dir=$(dirname "$GODOT_EDITOR_PATH")
   mkdir -p "$editor_dir"
   local copied=0
   local editor_tail="$GODOT_EDITOR_ARCH"
-  if [[ "$GODOT_EDITOR_PLAT" != "windows" ]]; then
+  if [[ "$GODOT_EDITOR_PLAT" == "windows" ]]; then
     editor_tail="$GODOT_EDITOR_ARCH.exe"
   fi
   local ed_path="bin/godot.$GODOT_EDITOR_PLAT.editor.$editor_tail"
@@ -100,6 +104,10 @@ build_editor() {
 
 # ---------------- Linux ----------------
 build_linux() {
+  if [[ "$GODOT_EXPORT_LINUX" != "true" ]]; then
+    log "Skipping Linux, GODOT_EXPORT_LINUX == false in ./build/local/env.sh"
+    return
+  fi
   log "Building Linux template (release$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
   scons platform=linuxbsd target=template_release arch=x86_64 tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   log "Building Linux template (debug$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
@@ -111,6 +119,10 @@ build_linux() {
 
 # ---------------- Windows (cross-compile via mingw-w64) ----------------
 build_windows() {
+  if [[ "$GODOT_EXPORT_WINDOWS" != "true" ]]; then
+    log "Skipping Windows, GODOT_EXPORT_WINDOWS == false in ./build/local/env.sh"
+    return
+  fi
   if ! command -v x86_64-w64-mingw32-gcc >/dev/null 2>&1; then
     echo "Skipping Windows: mingw-w64 toolchain not found (install the mingw-w64 package)."
     return
@@ -126,6 +138,10 @@ build_windows() {
 
 # ---------------- macOS (cross-compile via osxcross) ----------------
 build_macos() {
+  if [[ "$GODOT_EXPORT_MACOS" != "true" ]]; then
+    log "Skipping macOS, GODOT_EXPORT_MACOS == false in ./build/local/env.sh"
+    return
+  fi
   if [[ "$GODOT_EDITOR_PLAT" != "macos" ]]; then
     if [[ -z "${OSXCROSS_DIR:-}" ]]; then
       echo "Skipping macOS: OSXCROSS_DIR not set on a non MacOS platform (requires an already-configured osxcross toolchain)."
@@ -145,6 +161,10 @@ build_macos() {
 
 # ---------------- Web (Emscripten) ----------------
 build_web() {
+  if [[ "$GODOT_EXPORT_WEB" != "true" ]]; then
+    log "Skipping web, GODOT_EXPORT_WEB == false in ./build/local/env.sh"
+    return
+  fi
   source "$HOME/Code/github.com/emsdk/emsdk_env.sh"
   if ! command -v emcc >/dev/null 2>&1; then
     echo "Skipping Web: emcc not found (source emsdk_env.sh from the Emscripten SDK first)."
@@ -161,6 +181,10 @@ build_web() {
 
 # ---------------- Android ----------------
 build_android() {
+  if [[ "$GODOT_EXPORT_ANDROID" != "true" ]]; then
+    log "Skipping Android, GODOT_EXPORT_ANDROID == false in ./build/local/env.sh"
+    return
+  fi
   if [[ -z "${ANDROID_SDK_DIR:-}" || -z "${ANDROID_NDK_DIR:-}" ]]; then
     echo "Skipping Android: set ANDROID_SDK_DIR and ANDROID_NDK_DIR first."
     return

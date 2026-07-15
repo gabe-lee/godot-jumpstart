@@ -82,6 +82,7 @@ if [[ "$PLATFORM" == "all" ]]; then
     if [["$GODOT_EXPORT_ANDROID" == "true"]]; then
         export_project "android" "build/local/bin/android/$GODOT_PROJECT_NAME.apk"
     fi
+    bash ./build_localsend_to_android.sh
     if [["$GODOT_EXPORT_IOS" == "true"]]; then
         export_project "ios" "build/local/bin/ios/$GODOT_PROJECT_NAME.ipa"
     fi
@@ -112,6 +113,7 @@ elif [[ "$PLATFORM" == "android" ]]; then
         exit 1
     fi
     export_project "android" "build/local/bin/android/$GODOT_PROJECT_NAME.apk"
+    bash ./build_localsend_to_android.sh
 elif [[ "$PLATFORM" == "ios" ]]; then
     if [["$GODOT_EXPORT_IOS" != "true"]]; then
         echo "iOS export not enabled in ./build/local/env.sh (also requires defined export preset and compiled templates)"

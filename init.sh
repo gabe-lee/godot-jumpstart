@@ -62,6 +62,10 @@ android_ndk_dir=$(echo "$android_ndk_dir" | sed -e 's/^[[:space:]]*//' -e 's/[[:
 read -r -p "Enter the path for OSXCROSS_DIR: " osxcross
 osxcross=$(echo "$osxcross" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
+# Prompt for LocalSend Android
+read -r -p "Enter the named device for for LOCALSEND_ANDROID: " localsend_android
+localsend_android=$(echo "$localsend_android" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
 # Prompt for Editor platform
 read -r -p "Enter the platform your are working from (linuxbsd|windows|macos): " machine_plat
 machine_plat=$(echo "$machine_plat" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -165,6 +169,7 @@ sed -i "s/script_encryption_key=\"\"/script_encryption_key=\"$encrypt_key\"/g" .
     echo "export GODOT_EXPORT_IOS=\"$export_ios\""
     echo "export GODOT_EXPORT_WEB=\"$export_web\""
     echo "export GODOT_PROJECT_NAME=\"$proj_name\""
+    echo "export LOCALSEND_ANDROID=\"$localsend_android\""
 } > "$ENV_FILE"
 
 # Make the generated script executable as well

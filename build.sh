@@ -70,27 +70,27 @@ export_project() {
 source ./build/local/env.sh
 
 if [[ "$PLATFORM" == "all" ]]; then
-    if [["$GODOT_EXPORT_WINDOWS" == "true"]]; then
+    if [[ "$GODOT_EXPORT_WINDOWS" == "true" ]]; then
         export_project "windows" "build/local/bin/windows/$GODOT_PROJECT_NAME.exe"
     fi
-    if [["$GODOT_EXPORT_LINUX" == "true"]]; then
+    if [[ "$GODOT_EXPORT_LINUX" == "true" ]]; then
         export_project "linux" "build/local/bin/linux/$GODOT_PROJECT_NAME.x86_64"
     fi
-    if [["$GODOT_EXPORT_MACOS" == "true"]]; then
+    if [[ "$GODOT_EXPORT_MACOS" == "true" ]]; then
         export_project "macos" "build/local/bin/macos/$GODOT_PROJECT_NAME.app"
     fi
-    if [["$GODOT_EXPORT_ANDROID" == "true"]]; then
+    if [[ "$GODOT_EXPORT_ANDROID" == "true" ]]; then
         export_project "android" "build/local/bin/android/$GODOT_PROJECT_NAME.apk"
     fi
     bash ./build_localsend_to_android.sh
-    if [["$GODOT_EXPORT_IOS" == "true"]]; then
+    if [[ "$GODOT_EXPORT_IOS" == "true" ]]; then
         export_project "ios" "build/local/bin/ios/$GODOT_PROJECT_NAME.ipa"
     fi
-    if [["$GODOT_EXPORT_WEB" == "true"]]; then
+    if [[ "$GODOT_EXPORT_WEB" == "true" ]]; then
         export_project "web" "build/local/bin/web/index.html"
     fi
 elif [[ "$PLATFORM" == "windows" ]]; then
-    if [["$GODOT_EXPORT_WINDOWS" != "true"]]; then
+    if [[ "$GODOT_EXPORT_WINDOWS" != "true" ]]; then
         echo "Windows export not enabled in ./build/local/env.sh (also requires defined export preset and compiled templates)"
         exit 1
     fi

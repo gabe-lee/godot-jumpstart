@@ -34,6 +34,7 @@ log() { printf '\n=== %s ===\n\n' "$*"; }
 
 JOBS="${JOBS:-$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)}"
 PROJECT_DIR=$PWD
+PROFILE_PATH="$PROJECT_DIR/build/profile.gdbuild"
 OUT_DIR="$PROJECT_DIR/build/local/templates/"
 
 pushd $GODOT_SOURCE_PATH
@@ -100,9 +101,9 @@ build_editor() {
 # ---------------- Linux ----------------
 build_linux() {
   log "Building Linux template (release$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=linuxbsd target=template_release arch=x86_64 tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=linuxbsd target=template_release arch=x86_64 tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   log "Building Linux template (debug$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=linuxbsd target=template_debug   arch=x86_64 tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=linuxbsd target=template_debug arch=x86_64 tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   collect linux \
     bin/godot.linuxbsd.template_release.x86_64 \
     bin/godot.linuxbsd.template_debug.x86_64
@@ -115,9 +116,9 @@ build_windows() {
     return
   fi
   log "Building Windows template (release$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=windows target=template_release arch=x86_64 use_mingw=yes tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=windows target=template_release arch=x86_64 use_mingw=yes tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   log "Building Windows template (debug$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=windows target=template_debug   arch=x86_64 use_mingw=yes tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=windows target=template_debug arch=x86_64 use_mingw=yes tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   collect windows \
     bin/godot.windows.template_release.x86_64.exe \
     bin/godot.windows.template_debug.x86_64.exe
@@ -134,9 +135,9 @@ build_macos() {
   
   export PATH="$OSXCROSS_DIR/target/bin:$PATH"
   log "Building macOS template (release$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=macos target=template_release arch=universal tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=macos target=template_release arch=universal tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   log "Building macOS template (debug$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=macos target=template_debug   arch=universal tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=macos target=template_debug arch=universal tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   collect macos \
     bin/godot.macos.template_release.universal \
     bin/godot.macos.template_debug.universal
@@ -150,9 +151,9 @@ build_web() {
     return
   fi
   log "Building Web template (release$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=web target=template_release tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=web target=template_release tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   log "Building Web template (debug$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=web target=template_debug tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=web target=template_debug tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   collect web \
     bin/godot.web.template_release.wasm32.zip \
     bin/godot.web.template_debug.wasm32.zip
@@ -166,9 +167,9 @@ build_android() {
   fi
   # Builds all architectures by default (arm32, arm64, x86_32, x86_64).
   log "Building Android template (release$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=android target=template_release tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=android target=template_release tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
   log "Building Android template (debug$CLEAN_LOG, profile ./build/profile.gdbuild, encrypt $SCRIPT_AES256_ENCRYPTION_KEY)"
-  scons platform=android target=template_debug tools=no build_profile="./build/profile.gdbuild" -s -j"$JOBS"
+  scons platform=android target=template_debug tools=no build_profile="$PROFILE_PATH" -s -j"$JOBS"
 
   pushd platform/android/java >/dev/null
   if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == CYGWIN* ]]; then

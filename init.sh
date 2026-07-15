@@ -7,13 +7,12 @@ confirm() {
     while true; do
         read -r -p "$1 [y/n]: " response
         case "${response,,}" in
-            y|yes|Y|YES|true|TRUE|t|T) return "true" ;; # true
-            n|no|N|NO|false|FALSE|f|F)  return "false" ;; # false
+            y|yes|Y|YES|true|TRUE|t|T) return 0 ;; # true
+            n|no|N|NO|false|FALSE|f|F) return 1 ;; # false
             *)     echo "Please answer y or n." ;;
         esac
     done
 }
-
 
 echo "Initializing directory structure in 'build/local'..."
 
@@ -76,16 +75,43 @@ read -r -p "Enter the path to the godot editor: " editor_path
 editor_path=$(echo "$editor_path" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 # Prompt for exports
-export_windows= confirm "Include export to Windows? "
-export_linux= confirm "Include export to Linux? "
-export_macos= confirm "Include export to MacOS? "
-export_android= confirm "Include export to Android? "
-export_iOS= confirm "Include export to iOS? "
-export_web= confirm "Include export to Web? "
-use_encrypt= confirm "Use PCK encryption? "
-
+if confirm "Include export to Windows? "; then
+    export_windows="true"
+else
+    export_windows="false"
+fi
+if confirm "Include export to Linux? "; then
+    export_linux="true"
+else
+    export_linux="false"
+fi
+if confirm "Include export to MacOS? "; then
+    export_macos="true"
+else
+    export_macos="false"
+fi
+if confirm "Include export to Android? "; then
+    export_android="true"
+else
+    export_android="false"
+fi
+if confirm "Include export to iOS? "; then
+    export_ios="true"
+else
+    export_ios="false"
+fi
+if confirm "Include export to Web? "; then
+    export_web="true"
+else
+    export_web="false"
+fi
+if confirm "Use PCK encryption? "; then
+    use_encrypt="true"
+else
+    use_encrypt="false"
+fi
 # Prompt for Project Name
-read -r -p "Enter the name of the project" proj_name
+read -r -p "Enter the name of the project: " proj_name
 proj_name=$(echo "$proj_name" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
 # Generate the random encryption key
@@ -99,185 +125,19 @@ if [[ "$use_encrypt" == "true" ]]; then
         encrypt_key="aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbccccccccccccccccdddddddddddddddd"
     fi
 fi
-preset_count=0
-# Init config files
-if [ ! -f "export_presets.cfg" ]; then
-    {
-        echo '[runnable_presets]'
-        echo ''
-        if [[ "$export_linux" == "true" ]]; then
-            echo 'Linux="linux"'
-        fi
-        if [[ "$export_windows" == "true" ]]; then
-            echo '"Windows Desktop"="windows"'
-        fi
-        if [[ "$export_macos" == "true" ]]; then
-            echo 'macOS="macos"'
-        fi
-        if [[ "$export_android" == "true" ]]; then
-            echo 'Android="android"'
-        fi
-        if [[ "$export_ios" == "true" ]]; then
-            echo 'iOS="ios"'
-        fi
-        if [[ "$export_web" == "true" ]]; then
-            echo 'Web="web"'
-        fi
-        if [[ "$export_linux" == "true" ]]; then
-            echo ''
-            echo "[preset.$preset_count]"
-            echo ''
-            echo 'name="linux"'
-            echo 'platform="Linux"'
-            echo 'exclude_filter="*EDITOR_ONLY/*,"'
-            echo "encrypt_pck=$use_encrypt"
-            echo "export_path=\"build/local/bin/linux/$proj_name.x86_64\""
-            echo ''
-            echo "[preset.$preset_count.options]"
-            echo ''
-            echo "custom_template/debug=\"build/local/templates/linux/godot.linuxbsd.template_debug.x86_64\""
-            echo "custom_template/release=\"build/local/templates/linux/godot.linuxbsd.template_release.x86_64\""
-            ((preset_count++))
-        fi
-        if [[ "$export_windows" == "true" ]]; then
-            echo ''
-            echo "[preset.$preset_count]"
-            echo ''
-            echo 'name="windows"'
-            echo 'platform="Windows Desktop"'
-            echo 'exclude_filter="*EDITOR_ONLY/*,"'
-            echo "encrypt_pck=$use_encrypt"
-            echo "export_path=\"build/local/bin/windows/$proj_name.exe\""
-            echo ''
-            echo "[preset.$preset_count.options]"
-            echo ''
-            echo "custom_template/debug=\"build/local/templates/windows/godot.windows.template_debug.x86_64.exe\""
-            echo "custom_template/release=\"build/local/templates/windows/godot.windows.template_release.x86_64.exe\""
-            ((preset_count++))
-        fi
-        if [[ "$export_macos" == "true" ]]; then
-            echo ''
-            echo "[preset.$preset_count]"
-            echo ''
-            echo 'name="macos"'
-            echo 'platform="macOS"'
-            echo 'exclude_filter="*EDITOR_ONLY/*,"'
-            echo "encrypt_pck=$use_encrypt"
-            echo "export_path=\"build/local/bin/macos/$proj_name.app\""
-            echo ''
-            echo "[preset.$preset_count.options]"
-            echo ''
-            echo "custom_template/debug=\"build/local/templates/windows/godot.windows.template_debug.x86_64.exe\""
-            echo "custom_template/release=\"build/local/templates/windows/godot.windows.template_release.x86_64.exe\""
-            ((preset_count++))
-        fi
-        if [[ "$export_android" == "true" ]]; then
-            echo ''
-            echo "[preset.$preset_count]"
-            echo ''
-            echo 'name="android"'
-            echo 'platform="Android"'
-            echo 'exclude_filter="*EDITOR_ONLY/*,"'
-            echo "encrypt_pck=$use_encrypt"
-            echo "export_path=\"build/local/bin/android/$proj_name.apk\""
-            echo ''
-            echo "[preset.$preset_count.options]"
-            echo ''
-            echo "custom_template/debug=\"build/local/templates/android/android_debug.apk\""
-            echo "custom_template/release=\"build/local/templates/android/android_release.apk\""
-            ((preset_count++))
-        fi
-        if [[ "$export_ios" == "true" ]]; then
-            echo ''
-            echo "[preset.$preset_count]"
-            echo ''
-            echo 'name="ios"'
-            echo 'platform="iOS"'
-            echo 'exclude_filter="*EDITOR_ONLY/*,"'
-            echo "encrypt_pck=$use_encrypt"
-            echo "export_path=\"build/local/bin/ios/$proj_name.ipa\""
-            echo ''
-            echo "[preset.$preset_count.options]"
-            echo ''
-            echo "custom_template/debug=\"build/local/templates/android/godot.ios.template_debug.arm64.a\""
-            echo "custom_template/release=\"build/local/templates/android/godot.ios.template_release.arm64.a\""
-            ((preset_count++))
-        fi
-        if [[ "$export_web" == "true" ]]; then
-            echo ''
-            echo "[preset.$preset_count]"
-            echo ''
-            echo 'name="web"'
-            echo 'platform="Web"'
-            echo 'exclude_filter="*EDITOR_ONLY/*,"'
-            echo "encrypt_pck=$use_encrypt"
-            echo "export_path=\"build/local/bin/web/index.html\""
-            echo ''
-            echo "[preset.$preset_count.options]"
-            echo ''
-            echo "custom_template/debug=\"build/local/templates/android/godot.web.template_debug.zip\""
-            echo "custom_template/release=\"build/local/templates/android/godot.web.template_release.zip\""
-            ((preset_count++))
-        fi
-    } > "export_presets.cfg"
-fi
 
-sed -i '' "'s/JumpstartTemplate/$proj_name/g'" project.godot
+sed -i "s/JumpstartTemplate/$proj_name/g" project.godot
 
+cp -v "export_presets.cfg.template" "export_presets.cfg"
 
-if [[ "$use_encrypt" == "true" ]]; then
-    if [ ! -f ".godot/export_credentials.cfg" ]; then
-        mkdir -p ".godot"
-        preset_count=0
-        {
-            if [[ "$export_linux" == "true" ]]; then
-                echo ''
-                echo "[preset.$preset_count]"
-                echo ""
-                echo "script_encryption_key=\"$encrypt_key\""
-                ((preset_count++))
-            fi
-            if [[ "$export_windows" == "true" ]]; then
-                echo ''
-                echo "[preset.$preset_count]"
-                echo ""
-                echo "script_encryption_key=\"$encrypt_key\""
-                ((preset_count++))
-            fi
-            if [[ "$export_macos" == "true" ]]; then
-                echo ''
-                echo "[preset.$preset_count]"
-                echo ""
-                echo "script_encryption_key=\"$encrypt_key\""
-                ((preset_count++))
-            fi
-            if [[ "$export_android" == "true" ]]; then
-                echo ''
-                echo "[preset.$preset_count]"
-                echo ""
-                echo "script_encryption_key=\"$encrypt_key\""
-                ((preset_count++))
-            fi
-            if [[ "$export_ios" == "true" ]]; then
-                echo ''
-                echo "[preset.$preset_count]"
-                echo ""
-                echo "script_encryption_key=\"$encrypt_key\""
-                ((preset_count++))
-            fi
-            if [[ "$export_web" == "true" ]]; then
-                echo ''
-                echo "[preset.$preset_count]"
-                echo ""
-                echo "script_encryption_key=\"$encrypt_key\""
-                ((preset_count++))
-            fi
-        } > ".godot/export_credentials.cfg"
-    fi
-fi
+sed -i "s/JumpstartTemplate/$proj_name/g" export_presets.cfg
 
 echo "Running editor to initialize project files"
 godot --headless --editor --quit
+
+cp -v "export_credentials.cfg.template" ".godot/export_credentials.cfg"
+
+sed -i "s/script_encryption_key=\"\"/script_encryption_key=\"$encrypt_key\"/g" .godot/export_credentials.cfg
 
 # Write the variables to the environment shell script
 {

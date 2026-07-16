@@ -54,29 +54,6 @@ var player_hp: float = 100.0:
         player_hp = val
         queue_save()
 var resources: PackedFloat64Array = []
-var ent_kind: PackedInt32Array = []
-var ent_max_health: PackedFloat32Array = []
-var ent_curr_health: PackedFloat32Array = []
-var ent_global_position: Array[Vector2i] = []
-var ent_tile_sub_position: Array[Vector2i] = []
-var ent_parent_entity: Array[Vector2i] = []
-var ent_next_sibling_entity: Array[Vector2i] = []
-var ent_first_child_entity: Array[Vector2i] = []
-var ent_can_be_orphaned: PackedByteArray = []
-var next_unused_id: int = 1:
-    set(val):
-        next_unused_id = val
-        queue_save()
-var num_free_entities: int = 0:
-    set(val):
-        num_free_entities = val
-        queue_save()
-var first_free_entity_id: int = 0:
-    set(val):
-        first_free_entity_id = val
-        queue_save()
-var entity_free_tracker: PackedInt32Array = []
-var entity_gen_tracker: PackedInt32Array = []
 
 func exists() -> bool:
     return FileAccess.file_exists(file_path)
@@ -130,20 +107,6 @@ func _load_to_dict_then_upgrade(result: Result, file: BinaryFile) -> void:
     player_max_hp = vals["player_max_hp"]
     player_hp = vals["player_hp"]
     resources = vals["resources"]
-    ent_kind = vals["ent_kind"]
-    ent_max_health = vals["ent_max_health"]
-    ent_curr_health = vals["ent_curr_health"]
-    ent_global_position = vals["ent_global_position"]
-    ent_tile_sub_position = vals["ent_tile_sub_position"]
-    ent_parent_entity = vals["ent_parent_entity"]
-    ent_next_sibling_entity = vals["ent_next_sibling_entity"]
-    ent_first_child_entity = vals["ent_first_child_entity"]
-    ent_can_be_orphaned = vals["ent_can_be_orphaned"]
-    next_unused_id = vals["next_unused_id"]
-    num_free_entities = vals["num_free_entities"]
-    first_free_entity_id = vals["first_free_entity_id"]
-    entity_free_tracker = vals["entity_free_tracker"]
-    entity_gen_tracker = vals["entity_gen_tracker"]
     return
 
 func _load_directly(result: Result, file: BinaryFile) -> void:
@@ -159,20 +122,6 @@ func _load_directly(result: Result, file: BinaryFile) -> void:
     player_max_hp = file.read_f32()
     player_hp = file.read_f32()
     resources = file.read_f64_array_len_prefix()
-    ent_kind = file.read_i32_array_len_prefix()
-    ent_max_health = file.read_f32_array_len_prefix()
-    ent_curr_health = file.read_f32_array_len_prefix()
-    ent_global_position = file.read_vec2_i32_array_len_prefix()
-    ent_tile_sub_position = file.read_vec2_u8_array_len_prefix()
-    ent_parent_entity = file.read_vec2_u32_array_len_prefix()
-    ent_next_sibling_entity = file.read_vec2_u32_array_len_prefix()
-    ent_first_child_entity = file.read_vec2_u32_array_len_prefix()
-    ent_can_be_orphaned = file.read_byte_array_len_prefix()
-    next_unused_id = file.read_u32()
-    num_free_entities = file.read_u32()
-    first_free_entity_id = file.read_u32()
-    entity_free_tracker = file.read_i32_array_len_prefix()
-    entity_gen_tracker = file.read_i32_array_len_prefix()
     result.check(file.last_error(), FileFormatUtil.FILE_READ_ERROR % file_path)
     return
 
@@ -218,20 +167,6 @@ func save(close_after_save: bool = false, _is_auto_save: bool = false) -> Result
     file.write_f32(player_max_hp)
     file.write_f32(player_hp)
     file.write_f64_array_len_prefix(resources)
-    file.write_i32_array_len_prefix(ent_kind)
-    file.write_f32_array_len_prefix(ent_max_health)
-    file.write_f32_array_len_prefix(ent_curr_health)
-    file.write_vec2_i32_array_len_prefix(ent_global_position)
-    file.write_vec2_u8_array_len_prefix(ent_tile_sub_position)
-    file.write_vec2_u32_array_len_prefix(ent_parent_entity)
-    file.write_vec2_u32_array_len_prefix(ent_next_sibling_entity)
-    file.write_vec2_u32_array_len_prefix(ent_first_child_entity)
-    file.write_byte_array_len_prefix(ent_can_be_orphaned)
-    file.write_u32(next_unused_id)
-    file.write_u32(num_free_entities)
-    file.write_u32(first_free_entity_id)
-    file.write_i32_array_len_prefix(entity_free_tracker)
-    file.write_i32_array_len_prefix(entity_gen_tracker)
     FileFormatUtil.save_common_two(result, file, file_path, DATA_MODE)
     if result.is_passing() and !disable_extra_integrity_check:
         var check_clone = clone_metadata_only(true)
@@ -285,20 +220,6 @@ func data_equals(other: GameState, _is_integrity_check: bool = false) -> bool:
     if other.player_max_hp != self.player_max_hp: return false
     if other.player_hp != self.player_hp: return false
     if other.resources != self.resources: return false
-    if other.ent_kind != self.ent_kind: return false
-    if other.ent_max_health != self.ent_max_health: return false
-    if other.ent_curr_health != self.ent_curr_health: return false
-    if other.ent_global_position != self.ent_global_position: return false
-    if other.ent_tile_sub_position != self.ent_tile_sub_position: return false
-    if other.ent_parent_entity != self.ent_parent_entity: return false
-    if other.ent_next_sibling_entity != self.ent_next_sibling_entity: return false
-    if other.ent_first_child_entity != self.ent_first_child_entity: return false
-    if other.ent_can_be_orphaned != self.ent_can_be_orphaned: return false
-    if other.next_unused_id != self.next_unused_id: return false
-    if other.num_free_entities != self.num_free_entities: return false
-    if other.first_free_entity_id != self.first_free_entity_id: return false
-    if other.entity_free_tracker != self.entity_free_tracker: return false
-    if other.entity_gen_tracker != self.entity_gen_tracker: return false
     return true
 
 
@@ -328,234 +249,6 @@ const SAVE_PROBATION_SECS := 60.0 * 60.0 # 1 hour
 const SAVE_PROBATION_MSG := "1 hour"
 
 var game: Game = null
-
-
-const ENT_KIND = EntityConstants.ENT
-
-const ENT_FACTION = EntityConstants.FACTION
-
-func entity_exists(ent_id: Vector2i) -> bool:
-    if ent_id.x <= 0 or ent_id.x >= next_unused_id: return false
-    if entity_gen_tracker[ent_id.x] != ent_id.y: return false
-    var free_sub_idx := ent_id.x & 63
-    var free_block_idx := ent_id.x >> 6
-    var is_free_block = entity_free_tracker[free_block_idx]
-    var is_free = ((is_free_block >> free_sub_idx) & 1) == 1
-    if is_free: return false
-    return true
-
-func create_entity() -> Vector2i:
-    var ent_id: Vector2i
-    if num_free_entities > 0:
-        var first_free: int = first_free_entity_id
-        var next_free: int = ent_kind[first_free]
-        first_free_entity_id = next_free
-        num_free_entities -= 1
-        var free_sub_idx: int = first_free & 63
-        var free_block_idx: int= first_free >> 6
-        var is_free_block = entity_free_tracker[free_block_idx]
-        is_free_block = is_free_block & (~(1 << free_sub_idx))
-        entity_free_tracker[free_block_idx] = is_free_block
-        var gen = entity_gen_tracker[first_free]
-        ent_id = Vector2i(first_free, gen)
-    else:
-        if next_unused_id >= ent_kind.size():
-            _grow_all_props_flat()
-        var gen = entity_gen_tracker[next_unused_id]
-        var id_ = next_unused_id
-        next_unused_id += 1
-        ent_id = Vector2i(id_, gen)
-    # USER ENTITY POST CREATE
-    # pre create
-    # END USER ENTITY POST CREATE
-    queue_save().handle_fail()
-    return ent_id
-
-func destroy_entity(ent_id: Vector2i) -> bool:
-    if !entity_exists(ent_id): return false
-    # USER ENTITY PRE DELETE
-    # post delete
-    # END USER ENTITY PRE DELETE
-    var num_free_ent_bits = entity_free_tracker.size() << 6
-    if num_free_entities >= num_free_ent_bits:
-        entity_free_tracker.push_back(0)
-        var this_free: int = ent_id.x
-        var next_free: int = first_free_entity_id
-        ent_kind[this_free] = next_free
-        first_free_entity_id = this_free
-        num_free_entities += 1
-        var free_sub_idx: int = this_free & 63
-        var free_block_idx: int= this_free >> 6
-        var is_free_block = entity_free_tracker[free_block_idx]
-        is_free_block = is_free_block | (1 << free_sub_idx)
-        entity_free_tracker[free_block_idx] = is_free_block
-    queue_save().handle_fail()
-    return true
-
-func _reinit_prop_lists_to_pow2() -> void:
-    var old_count = next_unused_id
-    var mask = 32 - 1
-    var new_count = (old_count + mask) & ~mask
-    _resize_all_props(old_count, new_count)
-
-func _grow_all_props_flat() -> void:
-    var old_count = next_unused_id
-    var new_count = old_count + 32
-    _resize_all_props(old_count, new_count)
-
-func _resize_all_props(old_count: int, new_count: int) -> void:
-    if old_count == new_count: return
-    assert(new_count == 0 or ((new_count - 1) & new_count == 0), "when growing entity arrays, new_count was expected to be a power of 2 but it wasnt")
-    var real_count
-    ent_kind.resize(new_count)
-    ent_max_health.resize(new_count)
-    ent_curr_health.resize(new_count)
-    ent_global_position.resize(new_count)
-    ent_tile_sub_position.resize(new_count)
-    ent_parent_entity.resize(new_count)
-    ent_next_sibling_entity.resize(new_count)
-    ent_first_child_entity.resize(new_count)
-    real_count = new_count >> 3
-    ent_can_be_orphaned.resize(real_count)
-    var g := entity_gen_tracker.size()
-    if g < new_count:
-        entity_gen_tracker.resize(new_count)
-        while g < new_count:
-            entity_gen_tracker[g] = 0
-            g += 1
-    else:
-        while g > new_count:
-            g -= 1
-            entity_gen_tracker[g] = (entity_gen_tracker[g] + 1) % INT32_MAX
-    if old_count < new_count:
-        while old_count < new_count:
-            var ent_id = Vector2i(old_count, 0)
-            set_kind(ent_id, 0, true)
-            set_max_health(ent_id, 100.0, true)
-            set_curr_health(ent_id, 0.0, true)
-            set_global_position(ent_id, Vector2i(0, 0), true)
-            set_tile_sub_position(ent_id, Vector2i(0, 0), true)
-            set_parent_entity(ent_id, Vector2i.ZERO, true)
-            set_next_sibling_entity(ent_id, Vector2i.ZERO, true)
-            set_first_child_entity(ent_id, Vector2i.ZERO, true)
-            set_can_be_orphaned(ent_id, 0, true)
-            old_count += 1
-    else:
-        while old_count > new_count:
-            old_count -= 1
-            var ent_id = Vector2i(old_count, entity_gen_tracker[old_count])
-            if entity_exists(ent_id):
-                destroy_entity(ent_id)
-    queue_save().handle_fail()
-
-func get_kind(ent_id: Vector2i, default: int = 0) -> int:
-    if !entity_exists(ent_id): return default
-    var val = ent_kind[ent_id.x]
-    return val
-
-func set_kind(ent_id: Vector2i, val: int, force: bool = false) -> bool:
-    if !force and !entity_exists(ent_id): return false
-    ent_kind[ent_id.x] = val
-    queue_save().handle_fail()
-    return true
-
-func get_max_health(ent_id: Vector2i, default: float = 100.0) -> float:
-    if !entity_exists(ent_id): return default
-    var val = ent_max_health[ent_id.x]
-    return val
-
-func set_max_health(ent_id: Vector2i, val: float, force: bool = false) -> bool:
-    if !force and !entity_exists(ent_id): return false
-    ent_max_health[ent_id.x] = val
-    queue_save().handle_fail()
-    return true
-
-func get_curr_health(ent_id: Vector2i, default: float = 0.0) -> float:
-    if !entity_exists(ent_id): return default
-    var val = ent_curr_health[ent_id.x]
-    return val
-
-func set_curr_health(ent_id: Vector2i, val: float, force: bool = false) -> bool:
-    if !force and !entity_exists(ent_id): return false
-    ent_curr_health[ent_id.x] = val
-    queue_save().handle_fail()
-    return true
-
-func get_global_position(ent_id: Vector2i, default: Vector2i = Vector2i(0, 0)) -> Vector2i:
-    if !entity_exists(ent_id): return default
-    var val = ent_global_position[ent_id.x]
-    return val
-
-func set_global_position(ent_id: Vector2i, val: Vector2i, force: bool = false) -> bool:
-    if !force and !entity_exists(ent_id): return false
-    ent_global_position[ent_id.x] = val
-    queue_save().handle_fail()
-    return true
-
-func get_tile_sub_position(ent_id: Vector2i, default: Vector2i = Vector2i(0, 0)) -> Vector2i:
-    if !entity_exists(ent_id): return default
-    var val = ent_tile_sub_position[ent_id.x]
-    return val
-
-func set_tile_sub_position(ent_id: Vector2i, val: Vector2i, force: bool = false) -> bool:
-    if !force and !entity_exists(ent_id): return false
-    ent_tile_sub_position[ent_id.x] = val
-    queue_save().handle_fail()
-    return true
-
-func get_parent_entity(ent_id: Vector2i, default: Vector2i = Vector2i.ZERO) -> Vector2i:
-    if !entity_exists(ent_id): return default
-    var val = ent_parent_entity[ent_id.x]
-    return val
-
-func set_parent_entity(ent_id: Vector2i, val: Vector2i, force: bool = false) -> bool:
-    if !force and !entity_exists(ent_id): return false
-    ent_parent_entity[ent_id.x] = val
-    queue_save().handle_fail()
-    return true
-
-func get_next_sibling_entity(ent_id: Vector2i, default: Vector2i = Vector2i.ZERO) -> Vector2i:
-    if !entity_exists(ent_id): return default
-    var val = ent_next_sibling_entity[ent_id.x]
-    return val
-
-func set_next_sibling_entity(ent_id: Vector2i, val: Vector2i, force: bool = false) -> bool:
-    if !force and !entity_exists(ent_id): return false
-    ent_next_sibling_entity[ent_id.x] = val
-    queue_save().handle_fail()
-    return true
-
-func get_first_child_entity(ent_id: Vector2i, default: Vector2i = Vector2i.ZERO) -> Vector2i:
-    if !entity_exists(ent_id): return default
-    var val = ent_first_child_entity[ent_id.x]
-    return val
-
-func set_first_child_entity(ent_id: Vector2i, val: Vector2i, force: bool = false) -> bool:
-    if !force and !entity_exists(ent_id): return false
-    ent_first_child_entity[ent_id.x] = val
-    queue_save().handle_fail()
-    return true
-
-func get_can_be_orphaned(ent_id: Vector2i, default: int = 0) -> int:
-    if !entity_exists(ent_id): return default
-    var sub_idx := ent_id.x & 7
-    var block_idx := ent_id.x >> 3
-    var val = ent_can_be_orphaned[block_idx]
-    val = (val >> sub_idx) & 1
-    return val
-
-func set_can_be_orphaned(ent_id: Vector2i, val: int, force: bool = false) -> bool:
-    if !force and !entity_exists(ent_id): return false
-    var sub_idx := ent_id.x & 7
-    var block_idx := ent_id.x >> 3
-    var prev_val = ent_can_be_orphaned[block_idx]
-    prev_val = prev_val & (~(1 << sub_idx))
-    assert(0 <= val and val <= 1, "value does not fit within 1 bit")
-    val = (val & 1) << sub_idx
-    val = val | prev_val
-    ent_can_be_orphaned[block_idx] = val
-    queue_save().handle_fail()
-    return true
 static var PREV_VERSION_READ_ROUTINES: Array[Callable] = [
 ]:
     set(v): assert(false)
@@ -563,4 +256,3 @@ static var PREV_VERSION_READ_ROUTINES: Array[Callable] = [
 static var PREV_VERSION_UPGRADE_ROUTINES: Array[Callable] = [
 ]:
     set(v): assert(false)
-
